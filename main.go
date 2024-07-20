@@ -156,11 +156,15 @@ func fieldNameForName(name string) string {
 	if name == "" {
 		panic("invalid name!")
 	}
+
 	nameRunes := []rune(name)
 	outputRunes := make([]rune, 0, len(nameRunes))
 	var nextUppercase bool
 	for x := 0; x < len(nameRunes); x++ {
-		if x == 0 {
+		if len(outputRunes) == 0 {
+			if !unicode.IsLetter(nameRunes[x]) {
+				continue
+			}
 			outputRunes = append(outputRunes, unicode.ToUpper(nameRunes[x]))
 			continue
 		}
