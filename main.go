@@ -55,7 +55,7 @@ func formatWithName(name string, typeMeta Node, aliases map[string]*NodeAlias) s
 	builder.WriteString("\n")
 	for _, aliasedType := range aliases {
 		if aliasedType.Seen > 1 {
-			builder.WriteString(fmt.Sprintf("// %s is an aliasesd type from JSON.\n", aliasedType.Alias))
+			builder.WriteString(fmt.Sprintf("// %s is an aliased type from JSON.\n", aliasedType.Alias))
 			builder.WriteString(formatWithNameTopLevel(aliasedType.Alias, aliasedType.Node, aliases))
 			builder.WriteString("\n")
 		}
