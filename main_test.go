@@ -23,6 +23,7 @@ func Test_sample(t *testing.T) {
 		t.Fail()
 	}
 }
+
 func Test_sample_00(t *testing.T) {
 	testData, err := os.ReadFile("testdata/sample_00.json")
 	if err != nil {
@@ -48,5 +49,28 @@ func Test_sample_01(t *testing.T) {
 	if err != nil {
 		t.Errorf("%+v\n", err)
 		t.Fail()
+	}
+}
+
+func Test_fieldNameForName(t *testing.T) {
+	testCases := [...]struct {
+		Input    string
+		Expected string
+	}{
+		{Input: "", Expected: ""},
+		{Input: "name", Expected: "Name"},
+		{Input: "0name", Expected: "Name"},
+		{Input: "name name", Expected: "NameName"},
+		{Input: "name_name", Expected: "NameName"},
+		{Input: "name.name", Expected: "NameName"},
+		{Input: "nameId", Expected: "NameID"},
+		{Input: "nameUrl", Expected: "NameURL"},
+	}
+
+	for _, tc := range testCases {
+		actual := fieldNameForName(tc.Input)
+		if tc.Expected != actual {
+			t.Errorf("expected %q actual %q", tc.Expected, actual)
+		}
 	}
 }
