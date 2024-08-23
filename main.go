@@ -198,6 +198,9 @@ func fieldNameForName(name string) string {
 		}
 	}
 	outputStr := string(outputRunes)
+	if outputStr == "" {
+		return "INVALID"
+	}
 	// correct `Id` instances
 	if strings.HasSuffix(outputStr, "Id") {
 		outputStr = strings.TrimSuffix(outputStr, "Id")

@@ -65,6 +65,8 @@ func Test_fieldNameForName(t *testing.T) {
 		{Input: "name.name", Expected: "NameName"},
 		{Input: "nameId", Expected: "NameID"},
 		{Input: "nameUrl", Expected: "NameURL"},
+		{Input: "$$", Expected: "INVALID"},
+		{Input: "$$Foo", Expected: "Foo"},
 	}
 
 	for _, tc := range testCases {
