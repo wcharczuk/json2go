@@ -437,7 +437,7 @@ type Array struct {
 
 func (a Array) Kind() Kind { return KindArray }
 
-func (a Array) Signature() string { return "array" }
+func (a Array) Signature() string { return "array[" + a.Type.Signature() + "]" }
 
 type Primitive string
 

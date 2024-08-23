@@ -124,3 +124,28 @@ func Test_Object_FieldNames(t *testing.T) {
 		t.Errorf("at field name index 0; expect json %q got %q", "ID_3", fn[4].Go)
 	}
 }
+
+func Test_anyToType_handlesBooleanArray(t *testing.T) {
+	data := []byte(`{"foo":[true,false],"bar":"hello"}`)
+
+	var unmarshaled any
+	json.Unmarshal(data, &unmarshaled)
+
+	node := anyToType(unmarshaled)
+	if node.Kind() != KindObject {
+		t.Fatal("expected root node to be an object")
+	}
+	fooField := node.(Object).Fields["foo"]
+	if fooField.Kind() != KindArray {
+		t.Fatal("expected `foo` field to be an an array")
+	}
+
+	fooFieldArrayType := fooField.(Array).Type
+	if fooFieldArrayType.Kind() != KindPrimitive {
+		t.Fatal("expected `foo` field array type to be an a primitive")
+	}
+
+	if string(fooFieldArrayType.(Primitive)) != "bool" {
+		t.Fatal("expected `foo` field array type to be a \"bool\"")
+	}
+}
