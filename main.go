@@ -80,9 +80,9 @@ func formatWithNameTopLevel(name string, typeMeta Node, aliases map[string]*Node
 			return builder.String()
 		}
 		builder.WriteString(fmt.Sprintf("type %s struct {\n", name))
-		for _, name := range typeMeta.(Object).FieldNames() {
-			node := typeMeta.(Object).Fields[name]
-			builder.WriteString(formatWithNameInner(name, 1, node, aliases))
+		for _, fn := range typeMeta.(Object).FieldNames() {
+			node := typeMeta.(Object).Fields[fn.JSON]
+			builder.WriteString(formatWithNameInner(fn.JSON, 1, node, aliases))
 		}
 		builder.WriteString("}")
 		return builder.String()
@@ -128,9 +128,9 @@ func formatWithNameInner(name string, indent int, typeMeta Node, aliases map[str
 			return builder.String()
 		}
 		builder.WriteString(fmt.Sprintf("%s%s struct {\n", indentTabs, fieldNameForName(name)))
-		for _, name := range typeMeta.(Object).FieldNames() {
-			field := typeMeta.(Object).Fields[name]
-			builder.WriteString(formatWithNameInner(name, indent+1, field, aliases))
+		for _, fn := range typeMeta.(Object).FieldNames() {
+			field := typeMeta.(Object).Fields[fn.JSON]
+			builder.WriteString(formatWithNameInner(fn.JSON, indent+1, field, aliases))
 		}
 		builder.WriteString(fmt.Sprintf("%s} `json:\"%s,omitempty\"`\n", indentTabs, name))
 		return builder.String()
@@ -146,9 +146,9 @@ func formatWithNameInner(name string, indent int, typeMeta Node, aliases map[str
 		}
 		if arrayType.Kind() == KindObject {
 			builder.WriteString(fmt.Sprintf("%s%s []struct {\n", indentTabs, fieldNameForName(name)))
-			for _, name := range arrayType.(Object).FieldNames() {
-				field := arrayType.(Object).Fields[name]
-				builder.WriteString(formatWithNameInner(name, indent+1, field, aliases))
+			for _, fn := range arrayType.(Object).FieldNames() {
+				field := arrayType.(Object).Fields[fn.JSON]
+				builder.WriteString(formatWithNameInner(fn.JSON, indent+1, field, aliases))
 			}
 			builder.WriteString(fmt.Sprintf("%s} `json:\"%s,omitempty\"`\n", indentTabs, name))
 			return builder.String()
@@ -235,9 +235,9 @@ func aliasRepeatedTypes(root Node, path []string) map[string]*NodeAlias {
 			Node:  typed,
 			Seen:  1,
 		}
-		for _, fieldName := range typed.FieldNames() {
-			field := typed.Fields[fieldName]
-			innerPath := cloneAppend(path, fieldNameForName(fieldName))
+		for _, fn := range typed.FieldNames() {
+			field := typed.Fields[fn.JSON]
+			innerPath := cloneAppend(path, fn.Go)
 			inner := aliasRepeatedTypes(field, innerPath)
 			for sig, alias := range inner {
 				if _, ok := output[sig]; !ok {
@@ -390,12 +390,28 @@ type Object struct {
 	Fields map[string]Node
 }
 
-func (o Object) FieldNames() []string {
-	output := make([]string, 0, len(o.Fields))
+type FieldName struct {
+	JSON string
+	Go   string
+}
+
+func (o Object) FieldNames() []FieldName {
+	output := make([]FieldName, 0, len(o.Fields))
+	duplicates := make(map[string]int)
 	for name := range o.Fields {
-		output = append(output, name)
+		goName := fieldNameForName(name)
+		duplicates[goName]++
+		if count := duplicates[goName]; count > 1 {
+			goName = fmt.Sprintf("%s_%d", goName, count)
+		}
+		output = append(output, FieldName{
+			JSON: name,
+			Go:   goName,
+		})
 	}
-	sort.Strings(output)
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].Go < output[j].Go
+	})
 	return output
 }
 
@@ -404,8 +420,8 @@ func (o Object) Kind() Kind { return KindObject }
 func (o Object) Signature() string {
 	buf := new(bytes.Buffer)
 	for _, fieldName := range o.FieldNames() {
-		fieldType := o.Fields[fieldName]
-		buf.WriteString(fieldName + "||" + fieldType.Signature())
+		fieldType := o.Fields[fieldName.JSON]
+		buf.WriteString(fieldName.JSON + "||" + fieldType.Signature())
 	}
 	h := sha256.New()
 	h.Write(buf.Bytes())

@@ -74,3 +74,51 @@ func Test_fieldNameForName(t *testing.T) {
 		}
 	}
 }
+
+func Test_Object_FieldNames(t *testing.T) {
+	o := Object{
+		Fields: map[string]Node{
+			"foo":  Primitive("bar"),
+			"bar":  Object{},
+			"id":   Primitive("0"),
+			"$id":  Primitive("0"),
+			"$$id": Primitive("0"),
+		},
+	}
+
+	fn := o.FieldNames()
+	if len(fn) != 5 {
+		t.Fatalf("expected 5 fields, got %d", len(fn))
+	}
+	if fn[0].JSON != "bar" {
+		t.Errorf("at field name index 0; expect json %q got %q", "bar", fn[0].JSON)
+	}
+	if fn[1].JSON != "foo" {
+		t.Errorf("at field name index 0; expect json %q got %q", "foo", fn[1].JSON)
+	}
+	if fn[2].JSON != "id" {
+		t.Errorf("at field name index 0; expect json %q got %q", "id", fn[2].JSON)
+	}
+	if fn[3].JSON != "$id" {
+		t.Errorf("at field name index 0; expect json %q got %q", "$id", fn[3].JSON)
+	}
+	if fn[4].JSON != "$$id" {
+		t.Errorf("at field name index 0; expect json %q got %q", "$$id", fn[4].JSON)
+	}
+
+	if fn[0].Go != "Bar" {
+		t.Errorf("at field name index 0; expect json %q got %q", "Bar", fn[0].Go)
+	}
+	if fn[1].Go != "Foo" {
+		t.Errorf("at field name index 0; expect json %q got %q", "Foo", fn[1].Go)
+	}
+	if fn[2].Go != "ID" {
+		t.Errorf("at field name index 0; expect json %q got %q", "ID", fn[2].Go)
+	}
+	if fn[3].Go != "ID_2" {
+		t.Errorf("at field name index 0; expect json %q got %q", "ID_2", fn[3].Go)
+	}
+	if fn[4].Go != "ID_3" {
+		t.Errorf("at field name index 0; expect json %q got %q", "ID_3", fn[4].Go)
+	}
+}
